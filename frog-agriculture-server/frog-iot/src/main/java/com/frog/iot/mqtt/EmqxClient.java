@@ -5,6 +5,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * @Classname EmqxClient
@@ -17,6 +18,7 @@ public class EmqxClient {
     @Autowired
     private EmqxCallback emqxCallback;
 
+    @Lazy
     @Autowired
     private EmqxService emqxService;
 
