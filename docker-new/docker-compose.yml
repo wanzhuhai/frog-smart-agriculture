@@ -25,11 +25,22 @@ services:
       - app-network
     restart: unless-stopped
     volumes:
-      - .//mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
-      - ./mysql/initdb:/docker-entrypoint-initdb.d
+      - ./mysql/initdb:/docker-entrypoint-initdb.d:ro
     environment:
-      MYSQL_DATABASE: frog_agriculture
       MYSQL_ROOT_PASSWORD: frog
+      MYSQL_DATABASE: frog_agriculture
+    command:
+      [
+        'mysqld',
+        '--character-set-server=utf8',
+        '--collation-server=utf8_unicode_ci',
+        '--default-time-zone=+8:00',
+        '--lower-case-table-names=1',
+        '--sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION',
+        '--max_allowed_packet=256M',
+        '--innodb_buffer_pool_size=256M',
+        '--innodb_log_file_size=128M'
+      ]     
 
   emqx:
     image: registry.cn-hangzhou.aliyuncs.com/wzh-library/emqx:5.6.1
@@ -45,9 +56,9 @@ services:
     networks:
       - app-network
     restart: unless-stopped
-    volumes:
-      - ./emqx/conf/emqx_auth_http.conf:/opt/emqx/etc/plugins/emqx_auth_http.conf
-      - ./emqx/conf/emqx_web_hook.conf:/opt/emqx/etc/plugins/emqx_web_hook.conf
+    #volumes:
+      #- ./emqx/conf/emqx_auth_http.conf:/opt/emqx/etc/plugins/emqx_auth_http.conf
+      #- ./emqx/conf/emqx_web_hook.conf:/opt/emqx/etc/plugins/emqx_web_hook.conf
     environment:
       EMQX_ALLOW__ANONYMOUS: "false"
       SET_CONTAINER_TIMEZONE: "true"
@@ -62,27 +73,21 @@ services:
       - 5005:5005
     networks:
       - app-network
-    depends_on:
-      - emqx
-      - redis
-      - mysql
     restart: unless-stopped
     volumes:
       - ./java/frog-admin.jar:/server.jar
       - ./java/application-prod.yml:/application-prod.yml
     environment:
       TZ: Asia/Shanghai
-    entrypoint: java  --spring.config.location=file:/application-prod.yml -jar /server.jar
+    command: java -jar /server.jar --spring.config.location=file:/application-prod.yml
 
   nginx:
     image: registry.cn-hangzhou.aliyuncs.com/wzh-library/nginx:1.22.0
     container_name: nginx
     ports:
-      - 80:80
+      - 8090:80
     networks:
       - app-network
-    depends_on:
-      - java
     restart: unless-stopped
     volumes:
       - ./nginx/html:/usr/share/nginx/html
