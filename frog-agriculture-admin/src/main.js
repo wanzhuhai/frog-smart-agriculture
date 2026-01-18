@@ -122,6 +122,12 @@ Vue.use(Element, {
 
 Vue.config.productionTip = false
 
+new Vue({
+    el: '#app',
+    router,
+    store,
+    render: h => h(App)
+  })
 
 //高德地图
 import AMapLoader from "@amap/amap-jsapi-loader";
